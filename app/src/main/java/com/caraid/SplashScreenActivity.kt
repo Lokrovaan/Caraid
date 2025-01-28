@@ -24,7 +24,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import com.caraid.ui.theme.CaraidPurple
+import com.caraid.ui.theme.*
 import com.google.firebase.Firebase
 import com.google.firebase.initialize
 import kotlinx.coroutines.delay
@@ -61,7 +61,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(CaraidPurple), // Customize background color
+            .background(CaraidPurplePrimary),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

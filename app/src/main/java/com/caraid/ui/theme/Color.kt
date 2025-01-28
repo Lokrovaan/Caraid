@@ -2,14 +2,13 @@ package com.caraid.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+//
+val CaraidPurplePrimary = Color(0xFF58245C)
+val CaraidPurpleSecondaryDark = Color(0xFF451349)
+val CaraidPurpleTertiaryDark = Color(0xFF2F0530)
+val CaraidPurpleSecondaryLight = Color(0xFF6E3972)
+val CaraidPurpleTertiaryLight = Color(0xFF895B8C)
 
-val CaraidPurple = Color(0xFF58245C)
 val White = Color(0xFFFFFFFF)
 val Ivory = Color(0xFFFFFFF0)
 val LightYellow = Color(0xFFFFFFE0)
