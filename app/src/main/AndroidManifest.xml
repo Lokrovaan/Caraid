@@ -12,12 +12,19 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Caraid"
         tools:targetApi="31">
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Caraid">
-        </activity>
+            android:theme="@style/Theme.Caraid"></activity>
         <activity
             android:name=".LoginActivity"
             android:exported="true">

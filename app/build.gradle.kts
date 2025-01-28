@@ -65,4 +65,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.firebaseui:firebase-ui-auth:8.0.2")
     implementation("com.google.firebase:firebase-analytics")
+
+    //Firebase Cloud Messaging
+    implementation("com.google.firebase:firebase-messaging-ktx")
 }
