@@ -27,8 +27,7 @@
             android:theme="@style/Theme.Caraid"></activity>
         <activity
             android:name=".LoginActivity"
-            android:exported="true">
-        </activity>
+            android:exported="true"></activity>
         <activity
             android:name=".SplashScreenActivity"
             android:exported="true"

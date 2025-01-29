@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Caraid</string>
+    <string name="default_notification_channel_id">direct_message</string>
+    <string name="fcm_message">New chat message</string>
 </resources>
