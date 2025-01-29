@@ -35,7 +35,7 @@ class SplashScreenActivity: ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             SplashScreen {
-                // Defer Firebase initialization to a background thread
+                // Launch Firebase in a background thread
                 lifecycleScope.launch {
                     Firebase.initialize(this@SplashScreenActivity)
 
