@@ -1,6 +1,7 @@
 package com.caraid
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -10,23 +11,29 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.functions.FirebaseFunctions
+import com.google.firebase.ktx.Firebase
 
-class MainActivity: ComponentActivity() {
+class ChatScreenActivity : ComponentActivity() {
+    private lateinit var auth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        auth = Firebase.auth
         setContent {
             ChatScreen()
         }
     }
 }
-
 @Composable
 fun ChatScreen() {
-    var currentMessageText by remember { mutableStateOf("") }
-    val currentUserId = Firebase.auth.currentUser?.uid
+    var currentMessage by remember { mutableStateOf("") }
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
     val messages = remember { mutableStateListOf<Message>() }
+    val functions = FirebaseFunctions.getInstance()
+    val sendMessageCallable = functions.getHttpsCallable("sendMessage")
 
     Column(
         modifier = Modifier
@@ -48,20 +55,37 @@ fun ChatScreen() {
             modifier = Modifier.fillMaxWidth()
         ) {
             TextField(
-                value = currentMessageText,
-                onValueChange = { currentMessageText = it },
+                value = currentMessage,
+                onValueChange = { currentMessage = it },
                 modifier = Modifier.weight(1f),
                 placeholder = { Text("Enter message") }
             )
             Button(
                 onClick = {
-                    // 1. Create a new message object
-                    val newMessage = Message(
-                        senderId = currentUserId ?: "",
-                        content = currentMessageText,
+                    val message = Message(
+                        senderId = currentUserId!!,
+                        content = currentMessage,
                         timestamp = System.currentTimeMillis()
                     )
-                     sendMessage(newMessage) },
+
+                    val data = hashMapOf(
+                        "recipientToken" to "recipient_fcm_token", // Replace with actual recipient token
+                        "senderId" to message.senderId,
+                        "messageText" to message.content
+                    )
+
+                    sendMessageCallable.call(data)
+                        .addOnSuccessListener { result ->
+                            // Handle success
+                            Log.d("ChatScreen", "Message sent successfully")
+                        }
+                        .addOnFailureListener { exception ->
+                            // Handle error
+                            Log.e("ChatScreen", "Error sending message: ${exception.message}")
+                        }
+
+                    currentMessage = "" // Clear the input field
+                },
                 modifier = Modifier.padding(start = 8.dp)
             ) {
                 Text("Send")
@@ -76,7 +100,5 @@ fun MessageCard(message: Message) {
     //...
 }
 
-fun sendMessage(message: Message) {
-    // 2. Send the message using FCM
-
-}
+//TODOThe recipientToken is a placeholder; you'll need to replace it with the actual recipient's FCM token.
+//The MessageCard composable is still a placeholder; you'll need to implement it to display the message content.

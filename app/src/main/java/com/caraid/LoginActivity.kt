@@ -95,7 +95,7 @@ fun LoginScreen(auth: FirebaseAuth) {
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
                                     // Sign in success, start MainActivity
-                                    context.startActivity(Intent(context, MainActivity::class.java))
+                                    context.startActivity(Intent(context, ChatScreenActivity::class.java))
                                 } else {
                                     showError = true
                                 }
@@ -114,12 +114,13 @@ fun LoginScreen(auth: FirebaseAuth) {
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
                                     // Account creation successful, navigate to main screen or login screen
-                                    context.startActivity(Intent(context, MainActivity::class.java))
+                                    context.startActivity(Intent(context, ChatScreenActivity::class.java))
                                 } else {
                                     // Account creation failed, display error message
                                     showError = true
                                 }
                             }
+
                     },
                     modifier = Modifier.padding(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = CaraidPurpleSecondaryLight)
