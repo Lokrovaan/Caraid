@@ -8,9 +8,8 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/white_purple_vmdpi"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Caraid"
         tools:targetApi="31">
@@ -25,11 +24,10 @@
         <activity
             android:name=".ChatScreenActivity"
             android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.Caraid"></activity>
+            android:theme="@style/Theme.Caraid"/>
         <activity
             android:name=".LoginActivity"
-            android:exported="true"></activity>
+            android:exported="true"/>
         <activity
             android:name=".SplashScreenActivity"
             android:exported="true"
