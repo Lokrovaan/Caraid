@@ -35,7 +35,7 @@ import com.google.firebase.initialize
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class SplashScreenActivity: ComponentActivity() {
+class SplashScreenActivity : ComponentActivity() {
     // Declare the launcher at the top of your Activity/Fragment:
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),

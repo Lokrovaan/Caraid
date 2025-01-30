@@ -27,6 +27,7 @@ class ChatScreenActivity : ComponentActivity() {
         }
     }
 }
+
 @Composable
 fun ChatScreen() {
     var currentMessage by remember { mutableStateOf("") }
