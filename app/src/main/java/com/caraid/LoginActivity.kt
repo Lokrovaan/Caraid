@@ -1,16 +1,31 @@
 package com.caraid
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,12 +33,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.caraid.ui.theme.CaraidTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
-import com.caraid.ui.theme.*
-import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
 
 
 class LoginActivity : ComponentActivity() {
@@ -33,14 +48,15 @@ class LoginActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         auth = Firebase.auth
         setContent {
-            LoginScreen(auth)
+            CaraidTheme {
+                LoginScreen(auth)
+            }
         }
     }
 }
 
 @Composable
 fun LoginScreen(auth: FirebaseAuth) {
-    val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
@@ -50,7 +66,7 @@ fun LoginScreen(auth: FirebaseAuth) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(CaraidPurplePrimary) // Set the background color here
+                .background(Color.LightGray)
                 .padding(paddingValues)
         ) {
             Column(
@@ -100,35 +116,43 @@ fun LoginScreen(auth: FirebaseAuth) {
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
                                     // Sign in success, start MainActivity
-                                    context.startActivity(
-                                        Intent(
-                                            context,
-                                            ChatScreenActivity::class.java
-                                        )
-                                    )
+                                    // context.startActivity(Intent(context, MainActivity::class.java))
                                 } else {
                                     showError = true
                                 }
                             }
                     },
                     modifier = Modifier.padding(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = CaraidPurpleSecondaryLight)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) {
                     Text("Login", color = Color.White)
                 }
 
                 // Create Account Button
                 Button(
-                    onClick = {
-                        showAccountCreationForm = true
-                    },
-                    modifier = Modifier.padding(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = CaraidPurpleSecondaryLight)
+                    onClick = { showAccountCreationForm = true },
+                    modifier = Modifier.padding(16.dp)
                 ) {
                     Text("Create Account", color = Color.White)
                 }
+
+                // Account Creation Form Dialog
                 if (showAccountCreationForm) {
-                    AccountCreationForm(auth)
+                    AlertDialog(
+                        onDismissRequest = { showAccountCreationForm = false },
+                        title = { Text("Create Account") },
+                        text = { AccountCreationForm(auth) },
+                        confirmButton = {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Button(onClick = { showAccountCreationForm = false }) {
+                                    Text("Cancel")
+                                }
+                            }
+                        }
+                    )
                 }
             }
         }

@@ -63,6 +63,7 @@ fun CaraidTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
+        typography = Typography,
         content = content
     )
 }

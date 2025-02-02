@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.caraid.ui.theme.CaraidTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.functions.FirebaseFunctions
@@ -23,7 +24,9 @@ class ChatScreenActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         auth = Firebase.auth
         setContent {
-            ChatScreen()
+            CaraidTheme {
+                ChatScreen()
+            }
         }
     }
 }
@@ -101,5 +104,5 @@ fun MessageCard(message: Message) {
     //TODO
 }
 
-//TODOThe recipientToken is a placeholder; you'll need to replace it with the actual recipient's FCM token.
-//The MessageCard composable is still a placeholder; you'll need to implement it to display the message content.
+//TODO The recipientToken is a placeholder; you'll need to replace it with the actual recipient's FCM token.
+//TODO The MessageCard composable is still a placeholder; you'll need to implement it to display the message content.
