@@ -98,7 +98,7 @@ fun ChatScreen() {
 @Composable
 fun MessageCard(message: Message) {
     // Display the message content (text, sender, timestamp, etc.)
-    //...
+    //TODO
 }
 
 //TODOThe recipientToken is a placeholder; you'll need to replace it with the actual recipient's FCM token.
