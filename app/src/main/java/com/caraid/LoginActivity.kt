@@ -38,7 +38,6 @@ class LoginActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(auth: FirebaseAuth) {
     val context = LocalContext.current
@@ -136,7 +135,6 @@ fun LoginScreen(auth: FirebaseAuth) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountCreationForm(auth: FirebaseAuth) {
     var username by remember { mutableStateOf("") }
@@ -206,7 +204,7 @@ fun AccountCreationForm(auth: FirebaseAuth) {
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
-                                        .addOnFailureListener { e ->
+                                        .addOnFailureListener {
                                             Log.d("MyTag", "Account Creation Failed")
                                             Toast.makeText(
                                                 context,

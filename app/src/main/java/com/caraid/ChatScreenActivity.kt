@@ -76,7 +76,7 @@ fun ChatScreen() {
                     )
 
                     sendMessageCallable.call(data)
-                        .addOnSuccessListener { result ->
+                        .addOnSuccessListener {
                             // Handle success
                             Log.d("ChatScreen", "Message sent successfully")
                         }

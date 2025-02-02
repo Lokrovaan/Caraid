@@ -8,7 +8,7 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/white_purple_vmdpi"
+        android:icon="@drawable/white_purple_v"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.Caraid"
@@ -23,16 +23,10 @@
 
         <activity
             android:name=".ChatScreenActivity"
-            android:exported="true"
-            android:theme="@style/Theme.Caraid"/>
-        <activity
-            android:name=".LoginActivity"
             android:exported="true"/>
         <activity
-            android:name=".SplashScreenActivity"
-            android:exported="true"
-            android:theme="@style/Theme.App.Starting">
-
+            android:name=".LoginActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
