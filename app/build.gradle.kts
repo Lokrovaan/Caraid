@@ -55,6 +55,8 @@ dependencies {
     implementation(libs.androidx.storage)
     implementation(libs.firebase.functions.ktx)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -64,14 +66,15 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // Splash Screen library
-    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation(libs.androidx.core.splashscreen)
 
     //Firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.8.0"))
-    implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.firebaseui:firebase-ui-auth:8.0.2")
-    implementation("com.google.firebase:firebase-analytics")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.ui.auth)
+    implementation(libs.firebase.analytics)
 
     //Firebase Cloud Messaging
-    implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation(platform(libs.firebase.bom.v3222))
+    implementation(libs.firebase.messaging.ktx)
 }

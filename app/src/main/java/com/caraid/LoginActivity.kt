@@ -1,31 +1,16 @@
 package com.caraid
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,13 +18,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.caraid.ui.theme.CaraidTheme
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
-
 
 class LoginActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
@@ -48,19 +33,19 @@ class LoginActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         auth = Firebase.auth
         setContent {
-            CaraidTheme {
-                LoginScreen(auth)
-            }
+            LoginScreen(auth)
         }
     }
 }
 
 @Composable
 fun LoginScreen(auth: FirebaseAuth) {
+    val navController = rememberNavController()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
     var showAccountCreationForm by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Scaffold { paddingValues ->
         Box(
@@ -115,8 +100,9 @@ fun LoginScreen(auth: FirebaseAuth) {
                         auth.signInWithEmailAndPassword(email, password)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
-                                    // Sign in success, start MainActivity
-                                    // context.startActivity(Intent(context, MainActivity::class.java))
+                                    // Sign in success, start ChatListActivity
+                                    val intent = Intent(context, ChatListActivity::class.java)
+                                    context.startActivity(intent)
                                 } else {
                                     showError = true
                                 }
@@ -141,7 +127,7 @@ fun LoginScreen(auth: FirebaseAuth) {
                     AlertDialog(
                         onDismissRequest = { showAccountCreationForm = false },
                         title = { Text("Create Account") },
-                        text = { AccountCreationForm(auth) },
+                        text = { AccountCreationForm(auth, navController) },
                         confirmButton = {
                             Column(
                                 modifier = Modifier.fillMaxWidth(),
@@ -160,7 +146,7 @@ fun LoginScreen(auth: FirebaseAuth) {
 }
 
 @Composable
-fun AccountCreationForm(auth: FirebaseAuth) {
+fun AccountCreationForm(auth: FirebaseAuth, navController: NavController) {
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -197,19 +183,14 @@ fun AccountCreationForm(auth: FirebaseAuth) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
-            onClick = { // Get email and password from input fields
+            onClick = {
                 auth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            // Account creation successful
-                            val userId = auth.currentUser?.uid // Get the user UID
-
-                            // Get the FCM token
+                            val userId = auth.currentUser?.uid
                             FirebaseMessaging.getInstance().token.addOnCompleteListener { tokenTask ->
                                 if (tokenTask.isSuccessful) {
                                     val token = tokenTask.result
-
-                                    // Store user information in Firestore
                                     val db = FirebaseFirestore.getInstance()
                                     val user = hashMapOf(
                                         "userId" to userId,
@@ -226,13 +207,30 @@ fun AccountCreationForm(auth: FirebaseAuth) {
                                                 "Account created successfully!",
                                                 Toast.LENGTH_SHORT
                                             ).show()
+
+                                            // Log in the user
+                                            auth.signInWithEmailAndPassword(email, password)
+                                                .addOnCompleteListener { loginTask ->
+                                                    if (loginTask.isSuccessful) {
+                                                        // Navigate to the chat list screen
+                                                        navController.navigate("chat_list")
+                                                    } else {
+                                                        // Handle login error
+                                                        Log.e(
+                                                            "MyTag",
+                                                            "Login failed after account creation",
+                                                            loginTask.exception
+                                                        )
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Login failed after account creation",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                    }
+                                                }
                                         }
                                         .addOnFailureListener { exception ->
-                                            Log.e(
-                                                "MyTag",
-                                                "Account Creation Failed",
-                                                exception
-                                            ) // Log the exception
+                                            Log.e("MyTag", "Account Creation Failed", exception)
                                             Toast.makeText(
                                                 context,
                                                 "Account creation unsuccessful, please try again",
@@ -241,10 +239,22 @@ fun AccountCreationForm(auth: FirebaseAuth) {
                                         }
                                 } else {
                                     // Handle error
+                                    Log.e("MyTag", "FCM token fetch failed", tokenTask.exception)
+                                    Toast.makeText(
+                                        context,
+                                        "FCM token fetch failed",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                         } else {
                             // Account creation failed, display error message
+                            Log.e("MyTag", "Account creation failed", task.exception)
+                            Toast.makeText(
+                                context,
+                                "Account creation failed",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
             },

@@ -1,7 +1,6 @@
 package com.caraid
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -11,86 +10,113 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.caraid.ui.theme.CaraidTheme
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.functions.FirebaseFunctions
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
 
 class ChatScreenActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        auth = Firebase.auth
+        auth = FirebaseAuth.getInstance()
+        val chatId = intent.getStringExtra("chatId") ?: ""
+
         setContent {
-            CaraidTheme {
-                ChatScreen()
-            }
+            ChatScreen(chatId)
         }
     }
 }
 
 @Composable
-fun ChatScreen() {
-    var currentMessage by remember { mutableStateOf("") }
-    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+fun ChatScreen(chatId: String) {
+    var messageText by remember { mutableStateOf("") }
     val messages = remember { mutableStateListOf<Message>() }
-    val functions = FirebaseFunctions.getInstance()
-    val sendMessageCallable = functions.getHttpsCallable("sendMessage")
+    val firestore = FirebaseFirestore.getInstance()
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        // Display the list of messages
+    // Fetch messages from Firestore
+    LaunchedEffect(chatId) {
+        firestore.collection("chats")
+            .document(chatId)
+            .collection("messages")
+            .orderBy("timestamp")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    // Handle error
+                    return@addSnapshotListener
+                }
+                messages.clear()
+                snapshot?.documents?.mapNotNull { it.toObject(Message::class.java) }
+                    ?.let { messages.addAll(it) }
+            }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Chat messages
         LazyColumn(
-            reverseLayout = true, // Reverse the order to display latest messages at the bottom
-            modifier = Modifier.weight(1f) // Occupy available space
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentPadding = PaddingValues(16.dp)
         ) {
             items(messages) { message ->
-                MessageCard(message)
+                MessageCard(message, currentUserId)
             }
         }
 
-        // Input field and send button
+        // Message input and send button
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
             TextField(
-                value = currentMessage,
-                onValueChange = { currentMessage = it },
+                value = messageText,
+                onValueChange = { messageText = it },
                 modifier = Modifier.weight(1f),
                 placeholder = { Text("Enter message") }
             )
             Button(
                 onClick = {
-                    val message = Message(
-                        senderId = currentUserId!!,
-                        content = currentMessage,
-                        timestamp = System.currentTimeMillis()
-                    )
+                    if (messageText.isNotBlank() && currentUserId.isNotBlank()) {
+                        val newMessage = Message(
+                            senderId = currentUserId,
+                            content = messageText,
+                            timestamp = System.currentTimeMillis()
+                        )
 
-                    val data = hashMapOf(
-                        "recipientToken" to "recipient_fcm_token", // Replace with actual recipient token
-                        "senderId" to message.senderId,
-                        "messageText" to message.content
-                    )
+                        // Create a HashMap for the Message object
+                        val messageData = hashMapOf(
+                            "senderId" to newMessage.senderId,
+                            "content" to newMessage.content,
+                            "timestamp" to newMessage.timestamp
+                        )
 
-                    sendMessageCallable.call(data)
-                        .addOnSuccessListener {
-                            // Handle success
-                            Log.d("ChatScreen", "Message sent successfully")
-                        }
-                        .addOnFailureListener { exception ->
-                            // Handle error
-                            Log.e("ChatScreen", "Error sending message: ${exception.message}")
-                        }
+                        // Send message to Firestore
+                        firestore.collection("chats")
+                            .document(chatId)
+                            .collection("messages")
+                            .add(messageData)
+                            .addOnSuccessListener {
+                                // Clear message text field
+                                messageText = ""
 
-                    currentMessage = "" // Clear the input field
-                },
-                modifier = Modifier.padding(start = 8.dp)
+                                // Update lastMessage in "chats" collection
+                                val chatUpdates = hashMapOf(
+                                    "lastMessage" to messageData // Store the Message object as a HashMap
+                                )
+                                firestore.collection("chats")
+                                    .document(chatId)
+                                    .update(chatUpdates as Map<String, Any>)
+                                    .addOnFailureListener { exception ->
+                                        // Handle error
+                                    }
+                            }
+                            .addOnFailureListener { exception ->
+                                // Handle error
+                            }
+                    }
+                }
             ) {
                 Text("Send")
             }
@@ -99,10 +125,10 @@ fun ChatScreen() {
 }
 
 @Composable
-fun MessageCard(message: Message) {
-    // Display the message content (text, sender, timestamp, etc.)
-    //TODO
+fun MessageCard(message: Message, currentUserId: String) {
+    // Display message content
+    Column {
+        Text(text = "From: ${message.senderId}")
+        Text(text = message.content)
+    }
 }
-
-//TODO The recipientToken is a placeholder; you'll need to replace it with the actual recipient's FCM token.
-//TODO The MessageCard composable is still a placeholder; you'll need to implement it to display the message content.
