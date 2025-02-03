@@ -197,8 +197,7 @@ fun AccountCreationForm(auth: FirebaseAuth) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
-            onClick = {
-                // Get email and password from input fields
+            onClick = { // Get email and password from input fields
                 auth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
@@ -228,8 +227,12 @@ fun AccountCreationForm(auth: FirebaseAuth) {
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
-                                        .addOnFailureListener {
-                                            Log.d("MyTag", "Account Creation Failed")
+                                        .addOnFailureListener { exception ->
+                                            Log.e(
+                                                "MyTag",
+                                                "Account Creation Failed",
+                                                exception
+                                            ) // Log the exception
                                             Toast.makeText(
                                                 context,
                                                 "Account creation unsuccessful, please try again",
