@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
@@ -18,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -60,63 +62,63 @@ fun ChatListScreen(navController: NavController) {
         if (currentUserId!= null) {
             coroutineScope.launch {
                 try {
-                    // Fetch all users involved in chats first
-                    val userDocuments = FirebaseFirestore.getInstance()
-                        .collection("users")
-                        .get()
-                        .await()
-
-                    val userNames = userDocuments.map {
-                        it.id to (it["username"] as? String?: "")
-                    }.toMap()
-                    otherUserNames = userNames
-
-                    // Then fetch the chats
-                    FirebaseFirestore.getInstance()
+                    // Fetch the chat first
+                    val chatDocument = FirebaseFirestore.getInstance()
                         .collection("chats")
                         .whereArrayContains("participants", currentUserId)
-                        .addSnapshotListener { snapshot, error ->
-                            if (error!= null) {
-                                Log.e("MyTag", "Error fetching chats: ${error.message}")
-                                return@addSnapshotListener
+                        .get()
+                        .await()
+                        .documents
+                        .firstOrNull()
+
+                    if (chatDocument!= null) {
+                        val participants = chatDocument["participants"] as? List<String>?: emptyList()
+                        val otherUserId = participants.firstOrNull { it!= currentUserId }?: ""
+
+                        // Fetch the other user's document directly
+                        val userDocument = FirebaseFirestore.getInstance()
+                            .collection("users")
+                            .document(otherUserId)
+                            .get()
+                            .await()
+
+                        val userNames = mapOf(
+                            userDocument.id to (userDocument["username"] as? String?: "")
+                        )
+                        otherUserNames = userNames
+
+                        // Then process the chat
+                        try {
+                            val chatId = chatDocument.id
+                            val otherUserName = userNames[otherUserId]?: ""
+
+                            coroutineScope.launch {
+                                val messageSnapshot = FirebaseFirestore.getInstance()
+                                    .collection("chats")
+                                    .document(chatId)
+                                    .collection("messages")
+                                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                                    .limit(1)
+                                    .get()
+                                    .await()
+
+                                val lastMessage = messageSnapshot.documents.firstOrNull()
+                                    ?.get("content") as? String?: ""
+
+                                val chat = chatDocument.toObject(Chat::class.java)?.copy(
+                                    chatId = chatId,
+                                    chatName = getChatName(participants, currentUserId),
+                                    otherUserName = otherUserName,
+                                    lastMessage = lastMessage
+                                )
+                                chat?.let { chats.add(it) }
                             }
-
-                            chats.clear()
-                            snapshot?.documents?.forEach { document ->
-                                try {
-                                    val chatId = document.id
-                                    val participants = document["participants"] as? List<String>?: emptyList()
-                                    val otherUserId = participants.firstOrNull { it!= currentUserId }?: ""
-                                    val otherUserName = userNames[otherUserId]?: ""
-
-                                    coroutineScope.launch {
-                                        val messageSnapshot = FirebaseFirestore.getInstance()
-                                            .collection("chats")
-                                            .document(chatId)
-                                            .collection("messages")
-                                            .orderBy("timestamp", Query.Direction.DESCENDING)
-                                            .limit(1)
-                                            .get()
-                                            .await()
-
-                                        val lastMessage = messageSnapshot.documents.firstOrNull()
-                                            ?.get("content") as? String?: ""
-
-                                        val chat = document.toObject(Chat::class.java)?.copy(
-                                            chatId = chatId,
-                                            chatName = getChatName(participants, currentUserId),
-                                            otherUserName = otherUserName,
-                                            lastMessage = lastMessage
-                                        )
-                                        chat?.let { chats.add(it) }
-                                    }
-                                } catch (e: Exception) {
-                                    Log.e("MyTag", "Error fetching chat details: ${e.message}")
-                                }
-                            }
+                        } catch (e: Exception) {
+                            Log.e("MyTag", "Error fetching chat details: ${e.message}")
                         }
+                    }
                 } catch (e: Exception) {
-                    Log.e("MyTag", "Error fetching users: ${e.message}")
+                    Log.e("MyTag", "Error fetching chat or user: ${e.message}")
                 }
             }
         }
@@ -124,9 +126,9 @@ fun ChatListScreen(navController: NavController) {
 
     LazyColumn {
         items(chats) { chat ->
-            ChatItem(chat) {
+            ChatItem(chat, onChatClick = {
                 navController.navigate("chat_screen/${chat.chatId}")
-            }
+            })
         }
     }
 }
@@ -137,7 +139,9 @@ fun getChatName(participants: List<String>, currentUserId: String): String {
 
 @Composable
 fun ChatItem(chat: Chat, onChatClick: () -> Unit) {
-    Column(modifier = Modifier.clickable { onChatClick() }) {
+    Column(modifier = Modifier
+        .clickable { onChatClick() }
+        .padding(16.dp)) { // Added padding for better visual separation
         Text("Chat with: ${chat.otherUserName}")
         Text("Last message: ${chat.lastMessage}")
     }
