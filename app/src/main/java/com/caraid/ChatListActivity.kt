@@ -1,8 +1,6 @@
 package com.caraid
 
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -15,7 +13,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,13 +20,13 @@ import androidx.navigation.compose.rememberNavController
 import com.caraid.ui.theme.CaraidTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
-class ChatListActivity : ComponentActivity() {
+class ChatListActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             CaraidTheme {
-                Log.d("MyTag", "ChatListActivity onCreate called")
                 AppNavigation()
             }
         }
@@ -40,7 +37,8 @@ class ChatListActivity : ComponentActivity() {
 fun AppNavigation() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = "chat_list") {
-        composable("chat_list") { ChatListScreen(navController) } // Pass navController here
+        composable("chat_list") { ChatListScreen(navController) }
+        // Add composable for "chat_screen/{chatId}" here to handle navigation to ChatScreenActivity
     }
 }
 
@@ -48,31 +46,50 @@ fun AppNavigation() {
 fun ChatListScreen(navController: NavController) {
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
     val chats = remember { mutableStateListOf<Chat>() }
-    val context = LocalContext.current // Get the context here
 
     LaunchedEffect(currentUserId) {
-        if (currentUserId != null) {
+        if (currentUserId!= null) {
             FirebaseFirestore.getInstance()
                 .collection("chats")
                 .whereArrayContains("participants", currentUserId)
                 .addSnapshotListener { snapshot, error ->
-                    if (error != null) {
+                    if (error!= null) {
                         // Handle error
                         return@addSnapshotListener
                     }
 
-                    chats.clear() // Clear the list before adding new data
-                    snapshot?.documents?.mapNotNull { document ->
-                        (document["lastMessageTimestamp"] as? com.google.firebase.Timestamp)?.toDate()?.time
-                            ?: 0 // Convert Timestamp to Long
-                        document.toObject(Chat::class.java)?.copy(
-                            chatId = document.id,
-                            chatName = getChatName(
-                                document["participants"] as? List<String> ?: emptyList(),
-                                currentUserId
-                            ),
-                        )
-                    }?.let { chats.addAll(it) }
+                    chats.clear()
+                    snapshot?.documents?.forEach { document ->
+                        val chatId = document.id
+                        val participants = document["participants"] as? List<String>?: emptyList()
+                        val otherUserId = participants.firstOrNull { it!= currentUserId }?: ""
+
+                        FirebaseFirestore.getInstance().collection("users").document(otherUserId)
+                            .get()
+                            .addOnSuccessListener { userDocument ->
+                                val otherUserName = userDocument["username"] as? String?: ""
+
+                                FirebaseFirestore.getInstance()
+                                    .collection("chats")
+                                    .document(chatId)
+                                    .collection("messages")
+                                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                                    .limit(1)
+                                    .get()
+                                    .addOnSuccessListener { messageSnapshot ->
+                                        val lastMessage = messageSnapshot.documents.firstOrNull()
+                                            ?.get("content") as? String?: ""
+
+                                        val chat = document.toObject(Chat::class.java)?.copy(
+                                            chatId = chatId,
+                                            chatName = getChatName(participants, currentUserId),
+                                            otherUserName = otherUserName,
+                                            lastMessage = lastMessage
+                                        )
+                                        chat?.let { chats.add(it) }
+                                    }
+                            }
+                    }
                 }
         }
     }
@@ -80,21 +97,15 @@ fun ChatListScreen(navController: NavController) {
     LazyColumn {
         items(chats) { chat ->
             ChatItem(chat) {
-                // Navigate to ChatScreenActivity using an Intent
-                val intent = Intent(context, ChatScreenActivity::class.java)
-                intent.putExtra("chatId", chat.chatId)
-                context.startActivity(intent)
+                navController.navigate("chat_screen/${chat.chatId}")
             }
         }
     }
 }
 
-// Helper function to determine the chat name
 fun getChatName(participants: List<String>, currentUserId: String): String {
-    // If there are only two participants, return the other participant's ID
-    // Otherwise, return a generic name like "Group Chat"
     return if (participants.size == 2) {
-        participants.firstOrNull { it != currentUserId } ?: "Unknown Chat"
+        participants.firstOrNull { it!= currentUserId }?: "Unknown Chat"
     } else {
         "Group Chat"
     }
@@ -103,6 +114,7 @@ fun getChatName(participants: List<String>, currentUserId: String): String {
 @Composable
 fun ChatItem(chat: Chat, onChatClick: () -> Unit) {
     Column(modifier = Modifier.clickable { onChatClick() }) {
-        Text("Chat Name: ${chat.chatName}")
+        Text("Chat with: ${chat.otherUserName}")
+        Text("Last message: ${chat.lastMessage}")
     }
 }

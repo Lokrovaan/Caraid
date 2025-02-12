@@ -125,7 +125,7 @@ class ChatScreenActivity : ComponentActivity() {
                 contentPadding = PaddingValues(16.dp)
             ) {
                 items(messages) { message ->
-                    MessageCard(message, currentUserId)
+                    MessageCard(message)
                 }
             }
 
@@ -190,7 +190,7 @@ class ChatScreenActivity : ComponentActivity() {
     }
 
     @Composable
-    fun MessageCard(message: Message, currentUserId: String) {
+    fun MessageCard(message: Message) {
         // Display message content
         Column {
             Text(text = "From: ${message.senderId}")
