@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--Callum Smith - S2145086-->
 <resources>
-    <color name="CaraidPurple">#58245C</color>
+    <color name="CaraidPurplePrimary">#58245C</color>
+    <color name="CaraidPurpleSecondary">#451349</color>
+    <color name="CaraidPurpleTertiary">#2F0530</color>
+
     <color name="White">#FFFFFF</color>
     <color name="Ivory">#FFFFF0</color>
     <color name="LightYellow">#FFFFE0</color>

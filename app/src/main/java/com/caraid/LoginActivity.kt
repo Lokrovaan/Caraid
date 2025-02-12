@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,13 +16,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,11 +36,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.caraid.ui.theme.CaraidPurplePrimary
+import com.caraid.ui.theme.CaraidPurpleSecondary
+import com.caraid.ui.theme.CaraidPurpleTertiary
+import com.caraid.ui.theme.CaraidTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -49,11 +60,12 @@ class LoginActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         auth = Firebase.auth
         setContent {
-            LoginScreen(auth)
+            CaraidTheme { LoginScreen(auth) }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(auth: FirebaseAuth) {
     val navController = rememberNavController()
@@ -66,8 +78,8 @@ fun LoginScreen(auth: FirebaseAuth) {
     Scaffold { paddingValues ->
         Box(
             modifier = Modifier
+                .background(CaraidPurplePrimary)
                 .fillMaxSize()
-                .background(Color.LightGray)
                 .padding(paddingValues)
         ) {
             Column(
@@ -77,6 +89,14 @@ fun LoginScreen(auth: FirebaseAuth) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Image(
+                    painter = painterResource(id = R.drawable.white_v), // Replace with your image resource
+                    contentDescription = "Caraid logo",
+                    modifier = Modifier
+                        .size(250.dp)
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
                 // Email TextField
                 TextField(
                     value = email,
@@ -125,7 +145,9 @@ fun LoginScreen(auth: FirebaseAuth) {
                             }
                     },
                     modifier = Modifier.padding(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = CaraidPurpleTertiary
+                    )
                 ) {
                     Text("Login", color = Color.White)
                 }
@@ -133,7 +155,10 @@ fun LoginScreen(auth: FirebaseAuth) {
                 // Create Account Button
                 Button(
                     onClick = { showAccountCreationForm = true },
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(16.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = CaraidPurpleTertiary
+                    )
                 ) {
                     Text("Create Account", color = Color.White)
                 }
@@ -142,18 +167,25 @@ fun LoginScreen(auth: FirebaseAuth) {
                 if (showAccountCreationForm) {
                     AlertDialog(
                         onDismissRequest = { showAccountCreationForm = false },
-                        title = { Text("Create Account") },
+                        containerColor = CaraidPurplePrimary,
+                        modifier = Modifier.background(Color.Transparent),
+                        title = { Text("Create Account", color = Color.White, textAlign = TextAlign.Center) },
                         text = { AccountCreationForm(auth, navController) },
                         confirmButton = {
                             Column(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Button(onClick = { showAccountCreationForm = false }) {
+                                Button(
+                                    onClick = { showAccountCreationForm = false },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = CaraidPurpleTertiary // Set the button colour to green
+                                    )
+                                ) {
                                     Text("Cancel")
                                 }
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -274,6 +306,9 @@ fun AccountCreationForm(auth: FirebaseAuth, navController: NavController) {
                         }
                     }
             },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = CaraidPurpleTertiary
+            )
         ) {
             Text("Create Account", color = Color.White)
         }

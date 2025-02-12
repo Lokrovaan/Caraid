@@ -4,10 +4,8 @@ import androidx.compose.ui.graphics.Color
 
 //
 val CaraidPurplePrimary = Color(0xFF58245C)
-val CaraidPurpleSecondaryDark = Color(0xFF451349)
-val CaraidPurpleTertiaryDark = Color(0xFF2F0530)
-val CaraidPurpleSecondaryLight = Color(0xFF6E3972)
-val CaraidPurpleTertiaryLight = Color(0xFF895B8C)
+val CaraidPurpleSecondary = Color(0xFF451349)
+val CaraidPurpleTertiary = Color(0xFF2F0530)
 
 val White = Color(0xFFFFFFFF)
 val Ivory = Color(0xFFFFFFF0)
