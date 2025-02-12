@@ -24,7 +24,7 @@ import com.caraid.ui.theme.CaraidTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
-class ChatListActivity: ComponentActivity() {
+class ChatListActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -51,22 +51,26 @@ fun ChatListScreen(navController: NavController) {
     val context = LocalContext.current // Get the context here
 
     LaunchedEffect(currentUserId) {
-        if (currentUserId!= null) {
+        if (currentUserId != null) {
             FirebaseFirestore.getInstance()
                 .collection("chats")
                 .whereArrayContains("participants", currentUserId)
                 .addSnapshotListener { snapshot, error ->
-                    if (error!= null) {
+                    if (error != null) {
                         // Handle error
                         return@addSnapshotListener
                     }
 
                     chats.clear() // Clear the list before adding new data
                     snapshot?.documents?.mapNotNull { document ->
-                        (document["lastMessageTimestamp"] as? com.google.firebase.Timestamp)?.toDate()?.time?: 0 // Convert Timestamp to Long
+                        (document["lastMessageTimestamp"] as? com.google.firebase.Timestamp)?.toDate()?.time
+                            ?: 0 // Convert Timestamp to Long
                         document.toObject(Chat::class.java)?.copy(
                             chatId = document.id,
-                            chatName = getChatName(document["participants"] as? List<String>?: emptyList(), currentUserId),
+                            chatName = getChatName(
+                                document["participants"] as? List<String> ?: emptyList(),
+                                currentUserId
+                            ),
                         )
                     }?.let { chats.addAll(it) }
                 }
@@ -90,7 +94,7 @@ fun getChatName(participants: List<String>, currentUserId: String): String {
     // If there are only two participants, return the other participant's ID
     // Otherwise, return a generic name like "Group Chat"
     return if (participants.size == 2) {
-        participants.firstOrNull { it!= currentUserId }?: "Unknown Chat"
+        participants.firstOrNull { it != currentUserId } ?: "Unknown Chat"
     } else {
         "Group Chat"
     }

@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
-class ChatScreenActivity: ComponentActivity() {
+class ChatScreenActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var sharedPref: SharedPreferences
     private val messages = mutableStateListOf<Message>()
@@ -39,7 +39,7 @@ class ChatScreenActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
-        val chatId = intent.getStringExtra("chatId")?: ""
+        val chatId = intent.getStringExtra("chatId") ?: ""
         sharedPref = getSharedPreferences("open_chats", Context.MODE_PRIVATE)
 
         setContent {
@@ -50,9 +50,10 @@ class ChatScreenActivity: ComponentActivity() {
     override fun onResume() {
         super.onResume()
         // Add chatId to shared preference
-        val chatId = intent.getStringExtra("chatId")?: ""
+        val chatId = intent.getStringExtra("chatId") ?: ""
         val editor = sharedPref.edit()
-        val openChatIds = sharedPref.getStringSet("open_chat_ids", setOf())?.toMutableSet()?: mutableSetOf()
+        val openChatIds =
+            sharedPref.getStringSet("open_chat_ids", setOf())?.toMutableSet() ?: mutableSetOf()
         openChatIds.add(chatId)
         editor.putStringSet("open_chat_ids", openChatIds)
         editor.apply()
@@ -65,9 +66,10 @@ class ChatScreenActivity: ComponentActivity() {
     override fun onPause() {
         super.onPause()
         // Remove chatId from shared preference
-        val chatId = intent.getStringExtra("chatId")?: ""
+        val chatId = intent.getStringExtra("chatId") ?: ""
         val editor = sharedPref.edit()
-        val openChatIds = sharedPref.getStringSet("open_chat_ids", setOf())?.toMutableSet()?: mutableSetOf()
+        val openChatIds =
+            sharedPref.getStringSet("open_chat_ids", setOf())?.toMutableSet() ?: mutableSetOf()
         openChatIds.remove(chatId)
         editor.putStringSet("open_chat_ids", openChatIds)
         editor.apply()
@@ -76,12 +78,12 @@ class ChatScreenActivity: ComponentActivity() {
         unregisterReceiver(newMessageReceiver)
     }
 
-    private val newMessageReceiver = object: BroadcastReceiver() {
+    private val newMessageReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "NEW_MESSAGE") {
-                val chatId = intent.getStringExtra("chatId")?: ""
-                val senderId = intent.getStringExtra("senderId")?: ""
-                val content = intent.getStringExtra("content")?: ""
+                val chatId = intent.getStringExtra("chatId") ?: ""
+                val senderId = intent.getStringExtra("senderId") ?: ""
+                val content = intent.getStringExtra("content") ?: ""
                 val timestamp = intent.getLongExtra("timestamp", 0)
                 val newMessage = Message(senderId, content, timestamp)
 
@@ -95,7 +97,7 @@ class ChatScreenActivity: ComponentActivity() {
     fun ChatScreen(chatId: String) {
         var messageText by remember { mutableStateOf("") }
         val firestore = FirebaseFirestore.getInstance()
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid?: ""
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
         // Fetch messages from Firestore
         LaunchedEffect(chatId) {
@@ -104,7 +106,7 @@ class ChatScreenActivity: ComponentActivity() {
                 .collection("messages")
                 .orderBy("timestamp")
                 .addSnapshotListener { snapshot, error ->
-                    if (error!= null) {
+                    if (error != null) {
                         // Handle error
                         return@addSnapshotListener
                     }

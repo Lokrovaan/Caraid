@@ -11,7 +11,7 @@ import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
-class MyFirebaseMessagingService: FirebaseMessagingService() {
+class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d(TAG, "From: ${remoteMessage.from}")
@@ -24,7 +24,7 @@ class MyFirebaseMessagingService: FirebaseMessagingService() {
             val content = remoteMessage.data["content"]
             val timestamp = remoteMessage.data["timestamp"]?.toLongOrNull()
 
-            if (chatId!= null && senderId!= null && content!= null && timestamp!= null) {
+            if (chatId != null && senderId != null && content != null && timestamp != null) {
                 val message = Message(senderId, content, timestamp)
                 handleReceivedMessage(chatId, message)
             } else {
@@ -73,7 +73,7 @@ class MyFirebaseMessagingService: FirebaseMessagingService() {
         // For example, you can store a list of open chat IDs in a shared preference
         // and check if the given chatId is present in the list
         val sharedPref = getSharedPreferences("open_chats", Context.MODE_PRIVATE)
-        val openChatIds = sharedPref.getStringSet("open_chat_ids", setOf())?: setOf()
+        val openChatIds = sharedPref.getStringSet("open_chat_ids", setOf()) ?: setOf()
         return openChatIds.contains(chatId)
     }
 
