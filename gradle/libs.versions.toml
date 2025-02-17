@@ -1,9 +1,10 @@
 [versions]
-agp = "8.8.0"
+agp = "8.8.1"
 coreSplashscreen = "1.0.1"
-firebaseBom = "33.8.0"
-firebaseBomVersion = "33.8.0"
+firebaseBom = "33.9.0"
+firebaseBomVersion = "33.9.0"
 firebaseUiAuth = "8.0.2"
+googleCloudLanguage = "2.11.1"
 kotlin = "2.0.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -11,12 +12,12 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.0"
-composeBom = "2025.01.01"
+composeBom = "2025.02.00"
 storage = "1.5.0"
 firebaseFunctionsKtx = "21.1.0"
-firebaseFirestoreKtx = "25.1.1"
-navigationRuntimeKtx = "2.8.6"
-navigationCompose = "2.8.6"
+firebaseFirestoreKtx = "25.1.2"
+navigationRuntimeKtx = "2.8.7"
+navigationCompose = "2.8.7"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -29,6 +30,7 @@ firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "fir
 firebase-bom-v3222 = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBomVersion" }
 firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging-ktx" }
 firebase-ui-auth = { module = "com.firebaseui:firebase-ui-auth", version.ref = "firebaseUiAuth" }
+google-cloud-language = { module = "com.google.cloud:google-cloud-language", version.ref = "googleCloudLanguage" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

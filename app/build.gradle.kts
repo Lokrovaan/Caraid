@@ -77,4 +77,7 @@ dependencies {
     //Firebase Cloud Messaging
     implementation(platform(libs.firebase.bom.v3222))
     implementation(libs.firebase.messaging.ktx)
+
+    //Google Cloud NL
+    implementation(libs.google.cloud.language)
 }
