@@ -17,16 +17,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.caraid.ui.theme.CaraidPurplePrimary
-import com.caraid.ui.theme.CaraidPurpleSecondary
 import com.caraid.ui.theme.CaraidPurpleTertiary
 import com.caraid.ui.theme.CaraidTheme
 import com.google.firebase.auth.FirebaseAuth
@@ -65,7 +61,6 @@ class LoginActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(auth: FirebaseAuth) {
     val navController = rememberNavController()
@@ -145,7 +140,7 @@ fun LoginScreen(auth: FirebaseAuth) {
                             }
                     },
                     modifier = Modifier.padding(16.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = CaraidPurpleTertiary
                     )
                 ) {
@@ -156,7 +151,7 @@ fun LoginScreen(auth: FirebaseAuth) {
                 Button(
                     onClick = { showAccountCreationForm = true },
                     modifier = Modifier.padding(16.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = CaraidPurpleTertiary
                     )
                 ) {
@@ -169,7 +164,13 @@ fun LoginScreen(auth: FirebaseAuth) {
                         onDismissRequest = { showAccountCreationForm = false },
                         containerColor = CaraidPurplePrimary,
                         modifier = Modifier.background(Color.Transparent),
-                        title = { Text("Create Account", color = Color.White, textAlign = TextAlign.Center) },
+                        title = {
+                            Text(
+                                "Create Account",
+                                color = Color.White,
+                                textAlign = TextAlign.Center
+                            )
+                        },
                         text = { AccountCreationForm(auth, navController) },
                         confirmButton = {
                             Column(

@@ -57,7 +57,12 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.firebase.vertexai)
+    implementation(libs.androidx.material.icons.core)
+    implementation(libs.androidx.room.ktx)
+
     testImplementation(libs.junit)
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -75,9 +80,6 @@ dependencies {
     implementation(libs.firebase.analytics)
 
     //Firebase Cloud Messaging
-    implementation(platform(libs.firebase.bom.v3222))
+    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging.ktx)
-
-    //Google Cloud NL
-    implementation(libs.google.cloud.language)
 }

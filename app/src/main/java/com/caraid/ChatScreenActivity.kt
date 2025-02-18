@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -81,10 +82,11 @@ class ChatScreenActivity : ComponentActivity() {
     private val newMessageReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "NEW_MESSAGE") {
-                val chatId = intent.getStringExtra("chatId") ?: ""
+                intent.getStringExtra("chatId") ?: ""
                 val senderId = intent.getStringExtra("senderId") ?: ""
                 val content = intent.getStringExtra("content") ?: ""
-                val timestamp = intent.getLongExtra("timestamp", 0)
+                val timestamp = Timestamp.now() // Or any other Timestamp object
+                intent.putExtra("timestamp", timestamp)
                 val newMessage = Message(senderId, content, timestamp)
 
                 // Add the new message to the messages list
@@ -147,7 +149,7 @@ class ChatScreenActivity : ComponentActivity() {
                             val newMessage = Message(
                                 senderId = currentUserId,
                                 content = messageText,
-                                timestamp = System.currentTimeMillis()
+                                timestamp = Timestamp.now()
                             )
 
                             // Create a HashMap for the Message object

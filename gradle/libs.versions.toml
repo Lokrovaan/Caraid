@@ -4,7 +4,7 @@ coreSplashscreen = "1.0.1"
 firebaseBom = "33.9.0"
 firebaseBomVersion = "33.9.0"
 firebaseUiAuth = "8.0.2"
-googleCloudLanguage = "2.11.1"
+googleCloudLanguage = "2.59.0"
 kotlin = "2.0.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -13,15 +13,19 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.0"
 composeBom = "2025.02.00"
+materialIconsCore = "1.7.8"
 storage = "1.5.0"
 firebaseFunctionsKtx = "21.1.0"
 firebaseFirestoreKtx = "25.1.2"
 navigationRuntimeKtx = "2.8.7"
 navigationCompose = "2.8.7"
+firebaseVertexai = "16.1.0"
+roomKtx = "2.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-material-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "materialIconsCore" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx" }
 #noinspection SimilarGradleDependency
@@ -49,6 +53,8 @@ firebase-functions-ktx = { group = "com.google.firebase", name = "firebase-funct
 firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+firebase-vertexai = { group = "com.google.firebase", name = "firebase-vertexai", version.ref = "firebaseVertexai" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

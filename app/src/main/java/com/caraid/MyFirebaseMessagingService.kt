@@ -8,6 +8,7 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.google.firebase.Timestamp
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
@@ -22,11 +23,19 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             val chatId = remoteMessage.data["chatId"]
             val senderId = remoteMessage.data["senderId"]
             val content = remoteMessage.data["content"]
-            val timestamp = remoteMessage.data["timestamp"]?.toLongOrNull()
+            val timestamp = remoteMessage.data["timestamp"]
 
             if (chatId != null && senderId != null && content != null && timestamp != null) {
-                val message = Message(senderId, content, timestamp)
-                handleReceivedMessage(chatId, message)
+                try {
+                    // Convert timestamp string to Timestamp object
+                    val timestampObject =
+                        Timestamp(timestamp.toLong(), 0) // Assuming timestamp is in seconds
+                    val message = Message(senderId, content, timestampObject)
+                    handleReceivedMessage(chatId, message)
+                } catch (e: NumberFormatException) {
+                    Log.e(TAG, "Error converting timestamp: ${e.message}")
+                    // Handle the error appropriately, e.g., send an error message to the user
+                }
             } else {
                 handleNow()
             }
