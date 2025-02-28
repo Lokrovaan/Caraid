@@ -4,8 +4,11 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -136,13 +139,12 @@ fun ChatListScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            // Call your custom TopAppBar composable here
             CustomTopAppBar(title = { Text("Chat List") })
         },
         bottomBar = {
             BottomNavigationBar(navController)
         },
-        containerColor = CaraidPurplePrimary // Apply background color to Scaffold
+        containerColor = CaraidPurplePrimary
     ) { innerPadding ->
         // The chat list will go here, with the innerPadding modifier
         LazyColumn(
@@ -209,8 +211,11 @@ fun ChatItem(chat: Chat, onChatClick: () -> Unit) {
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid // Get current user ID
 
     Column(modifier = Modifier
+        .fillMaxWidth()
         .clickable { onChatClick() }
         .padding(16.dp)
+        .border(1.dp, Color.Black)
+        .background(CaraidPurpleTertiary)
     ) {
         Text("Chat with: ${chat.otherUserName}")
         Text(
