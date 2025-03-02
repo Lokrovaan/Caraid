@@ -8,19 +8,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,11 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.caraid.ui.theme.CaraidPurplePrimary
+import androidx.navigation.NavHostController
 import com.caraid.ui.theme.CaraidPurpleTertiary
 import com.caraid.ui.theme.CaraidTheme
 import com.google.firebase.Timestamp
@@ -57,16 +46,7 @@ class ChatListActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation() {
-    val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "chat_list") {
-        composable("chat_list") { ChatListScreen(navController) }
-        // Add composable for "chat_screen/{chatId}" here to handle navigation to ChatScreenActivity
-    }
-}
-
-@Composable
-fun ChatListScreen(navController: NavController) {
+fun ChatListScreen(navController: NavHostController) {
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
     val chats = remember { mutableStateListOf<Chat>() }
     var otherUserNames by remember { mutableStateOf(mapOf<String, String>()) }
@@ -85,7 +65,6 @@ fun ChatListScreen(navController: NavController) {
                 val participants = chatDocument["participants"] as? List<String> ?: emptyList()
                 val otherUserId = participants.firstOrNull { it != currentUserId } ?: ""
 
-                // Fetch the other user's document directly
                 val userDocument = FirebaseFirestore.getInstance()
                     .collection("users")
                     .document(otherUserId)
@@ -97,12 +76,10 @@ fun ChatListScreen(navController: NavController) {
                 )
                 otherUserNames = userNames
 
-                // Then process the chat
                 try {
                     val chatId = chatDocument.id
                     val otherUserName = userNames[otherUserId] ?: ""
 
-                    // Fetch the last message and its sender ID
                     val lastMessageSnapshot = FirebaseFirestore.getInstance()
                         .collection("chats")
                         .document(chatId)
@@ -131,74 +108,22 @@ fun ChatListScreen(navController: NavController) {
                     )
                     chat?.let { chats.add(it) }
                 } catch (e: Exception) {
-                    Log.e("MyTag", "Error fetching chat details: ${e.message}")
+                    Log.e("ChatListActivity", "Error fetching chat details: ${e.message}")
                 }
             }
         }
     }
 
-    Scaffold(
-        topBar = {
-            CustomTopAppBar(title = { Text("Chat List") })
-        },
-        bottomBar = {
-            BottomNavigationBar(navController)
-        },
-        containerColor = CaraidPurplePrimary
-    ) { innerPadding ->
-        // The chat list will go here, with the innerPadding modifier
-        LazyColumn(
-            modifier = Modifier
-                .padding(innerPadding)
-        ) {
-            items(chats) { chat ->
-                ChatItem(chat, onChatClick = {
-                    navController.navigate("chat_screen/${chat.chatId}")
-                })
-            }
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        items(chats) { chat ->
+            ChatItem(chat, onChatClick = {
+                navController.navigate("chat_screen/${chat.chatId}")
+            })
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CustomTopAppBar(title: @Composable () -> Unit) {
-    TopAppBar(
-        title = title,
-        colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
-            containerColor = CaraidPurpleTertiary,
-            titleContentColor = Color.White
-        )
-    )
-}
-
-@Composable
-fun BottomNavigationBar(navController: NavController) {
-    val currentRoute = remember { mutableStateOf("chat_list") }
-    androidx.compose.material3.NavigationBar(
-        containerColor = CaraidPurpleTertiary,
-        contentColor = Color.White
-    )
-    {
-        NavigationBarItem(
-            icon = { Icon(Icons.Filled.Person, contentDescription = "Chats") },
-            label = { Text("Chats") },
-            selected = currentRoute.value == "chat_list",
-            onClick = {
-                currentRoute.value = "chat_list"
-                navController.navigate("chat_list")
-            }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Filled.Settings, contentDescription = "Settings") },
-            label = { Text("Settings") },
-            selected = currentRoute.value == "settings", // Replace "settings" with your actual route
-            onClick = {
-                currentRoute.value = "settings"
-                // Navigate to your settings screen
-                navController.navigate("settings") // Replace "settings" with your actual route
-            }
-        )
     }
 }
 
@@ -208,14 +133,15 @@ fun getChatName(participants: List<String>, currentUserId: String): String {
 
 @Composable
 fun ChatItem(chat: Chat, onChatClick: () -> Unit) {
-    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid // Get current user ID
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { onChatClick() }
-        .padding(16.dp)
-        .border(1.dp, Color.Black)
-        .background(CaraidPurpleTertiary)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onChatClick() }
+            .padding(16.dp)
+            .border(1.dp, Color.Black)
+            .background(CaraidPurpleTertiary)
     ) {
         Text("Chat with: ${chat.otherUserName}")
         Text(

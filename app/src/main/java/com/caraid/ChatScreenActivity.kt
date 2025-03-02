@@ -1,10 +1,5 @@
 package com.caraid
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,176 +22,108 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.caraid.ui.theme.CaraidTheme
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 class ChatScreenActivity : ComponentActivity() {
-    private lateinit var auth: FirebaseAuth
-    private lateinit var sharedPref: SharedPreferences
-    private val messages = mutableStateListOf<Message>()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        auth = FirebaseAuth.getInstance()
         val chatId = intent.getStringExtra("chatId") ?: ""
-        sharedPref = getSharedPreferences("open_chats", Context.MODE_PRIVATE)
-
+        val navController = NavController(this)
         setContent {
-            ChatScreen(chatId)
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Add chatId to shared preference
-        val chatId = intent.getStringExtra("chatId") ?: ""
-        val editor = sharedPref.edit()
-        val openChatIds =
-            sharedPref.getStringSet("open_chat_ids", setOf())?.toMutableSet() ?: mutableSetOf()
-        openChatIds.add(chatId)
-        editor.putStringSet("open_chat_ids", openChatIds)
-        editor.apply()
-
-        // Register broadcast receiver
-        val filter = IntentFilter("NEW_MESSAGE")
-        registerReceiver(newMessageReceiver, filter, RECEIVER_NOT_EXPORTED)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        // Remove chatId from shared preference
-        val chatId = intent.getStringExtra("chatId") ?: ""
-        val editor = sharedPref.edit()
-        val openChatIds =
-            sharedPref.getStringSet("open_chat_ids", setOf())?.toMutableSet() ?: mutableSetOf()
-        openChatIds.remove(chatId)
-        editor.putStringSet("open_chat_ids", openChatIds)
-        editor.apply()
-
-        // Unregister broadcast receiver
-        unregisterReceiver(newMessageReceiver)
-    }
-
-    private val newMessageReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == "NEW_MESSAGE") {
-                intent.getStringExtra("chatId") ?: ""
-                val senderId = intent.getStringExtra("senderId") ?: ""
-                val content = intent.getStringExtra("content") ?: ""
-                val timestamp = Timestamp.now() // Or any other Timestamp object
-                intent.putExtra("timestamp", timestamp)
-                val newMessage = Message(senderId, content, timestamp)
-
-                // Add the new message to the messages list
-                messages.add(newMessage)
+            CaraidTheme {
+                ChatScreen(chatId, navController)
             }
         }
     }
+}
 
-    @Composable
-    fun ChatScreen(chatId: String) {
-        var messageText by remember { mutableStateOf("") }
-        val firestore = FirebaseFirestore.getInstance()
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+/*navController isn't currently used but keeping it for
+future possible implementation.*/
+@Composable
+fun ChatScreen(chatId: String, navController: NavController) {
+    var newMessage by remember { mutableStateOf("") }
+    val messages = remember { mutableStateListOf<Message>() }
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
-        // Fetch messages from Firestore
-        LaunchedEffect(chatId) {
-            firestore.collection("chats")
+    LaunchedEffect(chatId) {
+        try {
+            FirebaseFirestore.getInstance()
+                .collection("chats")
                 .document(chatId)
                 .collection("messages")
-                .orderBy("timestamp")
-                .addSnapshotListener { snapshot, error ->
-                    if (error != null) {
-                        // Handle error
+                .orderBy("timestamp", Query.Direction.ASCENDING)
+                .addSnapshotListener { snapshot, e ->
+                    if (e != null) {
                         return@addSnapshotListener
                     }
                     messages.clear()
-                    snapshot?.documents?.mapNotNull { it.toObject(Message::class.java) }
-                        ?.let { messages.addAll(it) }
+                    snapshot?.toObjects(Message::class.java)?.let { messages.addAll(it) }
                 }
-        }
-
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Chat messages
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentPadding = PaddingValues(16.dp)
-            ) {
-                items(messages) { message ->
-                    MessageCard(message)
-                }
-            }
-
-            // Message input and send button
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                TextField(
-                    value = messageText,
-                    onValueChange = { messageText = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text("Enter message") }
-                )
-                Button(
-                    onClick = {
-                        if (messageText.isNotBlank() && currentUserId.isNotBlank()) {
-                            val newMessage = Message(
-                                senderId = currentUserId,
-                                content = messageText,
-                                timestamp = Timestamp.now()
-                            )
-
-                            // Create a HashMap for the Message object
-                            val messageData = hashMapOf(
-                                "senderId" to newMessage.senderId,
-                                "content" to newMessage.content,
-                                "timestamp" to newMessage.timestamp
-                            )
-
-                            // Send message to Firestore
-                            firestore.collection("chats")
-                                .document(chatId)
-                                .collection("messages")
-                                .add(messageData)
-                                .addOnSuccessListener {
-                                    // Clear message text field
-                                    messageText = ""
-
-                                    // Update lastMessage in "chats" collection
-                                    val chatUpdates = hashMapOf(
-                                        "lastMessage" to messageData
-                                    )
-                                    firestore.collection("chats")
-                                        .document(chatId)
-                                        .update(chatUpdates as Map<String, Any>)
-                                        .addOnFailureListener { exception ->
-                                            // Handle error
-                                        }
-                                }
-                                .addOnFailureListener { exception ->
-                                    // Handle error
-                                }
-                        }
-                    }
-                ) {
-                    Text("Send")
-                }
-            }
+        } catch (_: Exception) {
         }
     }
 
-    @Composable
-    fun MessageCard(message: Message) {
-        // Display message content
-        Column {
-            Text(text = "From: ${message.senderId}")
-            Text(text = message.content)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentPadding = PaddingValues(16.dp)
+        ) {
+            items(messages) { message ->
+                MessageItem(message, currentUserId)
+            }
         }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            TextField(
+                value = newMessage,
+                onValueChange = { newMessage = it },
+                modifier = Modifier.weight(1f),
+                placeholder = { Text("Enter message") }
+            )
+            Button(
+                onClick = {
+                    if (newMessage.isNotBlank()) {
+                        val message = Message(currentUserId, newMessage, Timestamp.now())
+                        FirebaseFirestore.getInstance()
+                            .collection("chats")
+                            .document(chatId)
+                            .collection("messages")
+                            .add(message)
+                        newMessage = ""
+                    }
+                },
+                modifier = Modifier.padding(start = 8.dp)
+            ) {
+                Text("Send")
+            }
+        }
+    }
+}
+
+@Composable
+fun MessageItem(message: Message, currentUserId: String) {
+    val isCurrentUser = message.senderId == currentUserId
+    Column(
+        modifier = Modifier.padding(8.dp)
+    ) {
+        Text(
+            text = if (isCurrentUser) "You: ${message.content}" else "${message.senderId}: ${message.content}",
+            color = Color.White
+        )
     }
 }
