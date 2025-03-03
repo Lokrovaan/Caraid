@@ -117,7 +117,7 @@ fun ChatListScreen(navController: NavHostController) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(5.dp)
     ) {
         items(chats) { chat ->
             ChatItem(chat, onChatClick = {
@@ -139,8 +139,9 @@ fun ChatItem(chat: Chat, onChatClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onChatClick() }
-            .padding(16.dp)
-            .border(1.dp, Color.Black)
+            .padding(10.dp) //outer padding for the Item as a whole.
+            .padding(10.dp) //inner padding for the text inside.
+            .border(2.dp, Color.Black)
             .background(CaraidPurpleTertiary)
     ) {
         Text("Chat with: ${chat.otherUserName}")
@@ -148,7 +149,7 @@ fun ChatItem(chat: Chat, onChatClick: () -> Unit) {
             text = if (chat.lastMessage?.senderId == currentUserId) {
                 "You: ${chat.lastMessage?.content}"
             } else {
-                "${chat.otherUserName}: ${chat.lastMessage}"
+                "${chat.otherUserName}: ${chat.lastMessage?.content}"
             }
         )
     }
