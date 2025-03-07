@@ -30,8 +30,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     // Convert timestamp string to Timestamp object
                     val timestampObject =
                         Timestamp(timestamp.toLong(), 0) // Assuming timestamp is in seconds
-                    val message = Message(senderId, content, timestampObject)
-                    handleReceivedMessage(chatId, message)
+                    //val message = Message(senderId, content, timestampObject)
+                    //handleReceivedMessage(chatId, message)
                 } catch (e: NumberFormatException) {
                     Log.e(TAG, "Error converting timestamp: ${e.message}")
                     // Handle the error appropriately, e.g., send an error message to the user
@@ -90,7 +90,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     private fun sendMessageBroadcast(chatId: String, message: Message) {
         val intent = Intent("NEW_MESSAGE")
         intent.putExtra("chatId", chatId)
-        intent.putExtra("senderId", message.senderId)
+        //intent.putExtra("senderId", message.senderId)
         intent.putExtra("content", message.content)
         intent.putExtra("timestamp", message.timestamp)
         sendBroadcast(intent)
@@ -108,7 +108,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val channelId = getString(R.string.default_notification_channel_id)
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.white_purple_v)
-            .setContentTitle("New message from ${message.senderId}")
+            //.setContentTitle("New message from ${message.senderId}")
             .setContentText(message.content)
             .setAutoCancel(true)
             .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))

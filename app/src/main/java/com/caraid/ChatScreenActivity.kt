@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -24,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.caraid.ui.theme.CaraidTheme
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
@@ -35,23 +35,23 @@ class ChatScreenActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val chatId = intent.getStringExtra("chatId") ?: ""
-        val navController = NavController(this)
+        val otherUserName = intent.getStringExtra("otherUserName") ?: ""
         setContent {
             CaraidTheme {
-                ChatScreen(chatId, navController)
+                ChatScreen(chatId, otherUserName)
             }
         }
     }
 }
 
-/*navController isn't currently used but keeping it for
-future possible implementation.*/
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(chatId: String, navController: NavController) {
+fun ChatScreen(chatId: String, otherUserName: String) {
     var newMessage by remember { mutableStateOf("") }
     val messages = remember { mutableStateListOf<Message>() }
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
+    // Fetch messages and listen for updates
     LaunchedEffect(chatId) {
         try {
             FirebaseFirestore.getInstance()
@@ -74,6 +74,7 @@ fun ChatScreen(chatId: String, navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
     ) {
+        // Display messages in a LazyColumn
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -81,9 +82,11 @@ fun ChatScreen(chatId: String, navController: NavController) {
             contentPadding = PaddingValues(16.dp)
         ) {
             items(messages) { message ->
-                MessageItem(message, currentUserId)
+                MessageItem(message, currentUserId, otherUserName)
             }
         }
+
+        // Input field and send button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -97,8 +100,13 @@ fun ChatScreen(chatId: String, navController: NavController) {
             )
             Button(
                 onClick = {
+                    // Send new message
                     if (newMessage.isNotBlank()) {
-                        val message = Message(currentUserId, newMessage, Timestamp.now())
+                        val message = Message(
+                            sender = User(userId = currentUserId),
+                            content = newMessage,
+                            timestamp = Timestamp.now()
+                        )
                         FirebaseFirestore.getInstance()
                             .collection("chats")
                             .document(chatId)
@@ -115,14 +123,15 @@ fun ChatScreen(chatId: String, navController: NavController) {
     }
 }
 
+// Display a single message item
 @Composable
-fun MessageItem(message: Message, currentUserId: String) {
-    val isCurrentUser = message.senderId == currentUserId
+fun MessageItem(message: Message, currentUserId: String, otherUserName: String) {
+    val isCurrentUser = message.sender.userId == currentUserId
     Column(
         modifier = Modifier.padding(8.dp)
     ) {
         Text(
-            text = if (isCurrentUser) "You: ${message.content}" else "${message.senderId}: ${message.content}",
+            text = if (isCurrentUser) "You: ${message.content}" else "$otherUserName: ${message.content}",
             color = Color.White
         )
     }

@@ -1,4 +1,4 @@
-package com.caraid
+package com.caraid // Package declaration
 
 import android.os.Bundle
 import android.util.Log
@@ -31,9 +31,10 @@ import com.caraid.ui.theme.CaraidTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-// Activity that displays the list of chats for the current user.
+// Activity that displays the list of chats for the current user
 class ChatListActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,45 +46,52 @@ class ChatListActivity : ComponentActivity() {
     }
 }
 
-// Composable function that displays the list of chats.
+// Composable function that displays the list of chats
 @Composable
 fun ChatListScreen(navController: NavHostController) {
-    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-    val chats = remember { mutableStateListOf<Chat>() }
-    var otherUserNames by remember { mutableStateOf(mapOf<String, String>()) }
-    rememberCoroutineScope()
+    val chats = remember { mutableStateListOf<Chat>() } // State to hold the list of chats
+    val coroutineScope = rememberCoroutineScope() // Coroutine scope for asynchronous operations
+    var currentUserId by remember { mutableStateOf("") } // State to hold the current user's ID
 
-    // LaunchedEffect to fetch chats when the current user ID changes.
-    LaunchedEffect(currentUserId) {
-        if (currentUserId != null) {
-            fetchChats(currentUserId, chats, otherUserNames) { newOtherUsernames ->
-                otherUserNames = newOtherUsernames
+    // LaunchedEffect to fetch chats when the screen is displayed
+    LaunchedEffect(Unit) {
+        // Get Firebase auth instance
+        val auth = FirebaseAuth.getInstance()
+
+        // Check if user is logged in
+        auth.currentUser?.let { user ->
+
+            // Get current user's ID
+            currentUserId = user.uid
+
+            coroutineScope.launch {
+                // Fetch chats for the current user
+                fetchChats(user.uid, chats)
             }
         }
     }
 
-    // LazyColumn to display the list of chats efficiently.
+    // LazyColumn to display the list of chats efficiently
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(5.dp)
     ) {
-        items(chats) { chat ->
+        items(chats) { chat -> // Iterate through the list of chats
             ChatItem(chat, onChatClick = {
-                navController.navigate("chat_screen/${chat.chatId}")
+                // Navigate to the chat screen when a chat item is clicked
+                navController.navigate("chat_screen/${chat.chatId}/${chat.otherUser?.userName}")
             })
         }
     }
 }
 
-// Function to fetch the list of chats for the current user.
+// Function to fetch the list of chats for the current user
 suspend fun fetchChats(
     currentUserId: String,
-    chats: MutableList<Chat>,
-    otherUserNames: Map<String, String>,
-    onOtherUserNamesUpdated: (Map<String, String>) -> Unit
+    chats: MutableList<Chat>
 ) {
-    // Fetch chat documents from Firestore where the current user is a participant.
+    // Fetch chat documents from Firestore where the current user is a participant
     val chatDocuments = FirebaseFirestore.getInstance()
         .collection("chats")
         .whereArrayContains("participants", currentUserId)
@@ -91,89 +99,132 @@ suspend fun fetchChats(
         .await()
         .documents
 
-    val newOtherUserNames = mutableMapOf<String, String>()
-
-    // Iterate through the chat documents and fetch chat details.
+    // Iterate through the chat documents and fetch chat details
     chatDocuments.forEach { chatDocument ->
-        val participants = chatDocument["participants"] as? List<String> ?: emptyList()
-        val otherUserId = participants.firstOrNull { it != currentUserId } ?: ""
-
-        // Fetch the other user's name.
-        val otherUserName = fetchOtherUserName(otherUserId)
-        newOtherUserNames[otherUserId] = otherUserName
-
         try {
+            // Get the chat ID
             val chatId = chatDocument.id
+
+            // Get the participants
+            val participants = chatDocument["participants"] as? List<String> ?: emptyList()
+
+            // Get the other user's ID
+            val otherUserId = participants.firstOrNull { it != currentUserId } ?: ""
+
+            // Fetch the current user's details
+            val currentUser = fetchUser(currentUserId)
+
+            // Fetch the other user's details
+            val otherUser = fetchUser(otherUserId)
+
+            // Fetch the last message in the chat
             val lastMessage = fetchLastMessage(chatId)
 
-            // Create a Chat object with the fetched details.
-            val chat = chatDocument.toObject(Chat::class.java)?.copy(
+            // Create a Chat object with the fetched details
+            val chat = Chat(
                 chatId = chatId,
-                chatName = getChatName(participants, currentUserId),
-                otherUserName = otherUserName,
+                currentUser = currentUser,
+                otherUser = otherUser,
                 lastMessage = lastMessage
             )
-            chat?.let { chats.add(it) }
+
+            // Add the chat to the list
+            chats.add(chat)
         } catch (e: Exception) {
+            // Log any errors
             Log.e("ChatListActivity", "Error fetching chat details: ${e.message}")
         }
     }
-
-    // Update the otherUserNames map with the fetched names.
-    onOtherUserNamesUpdated(newOtherUserNames)
 }
 
-// Function to fetch the username of the other user in a chat.
-suspend fun fetchOtherUserName(otherUserId: String): String {
-    return try {
-        val userDocument = FirebaseFirestore.getInstance()
-            .collection("users")
-            .document(otherUserId)
-            .get()
-            .await()
-        userDocument["username"] as? String ?: ""
-    } catch (e: Exception) {
-        Log.e("ChatListActivity", "Error fetching other user name: ${e.message}")
-        ""
-    }
-}
-
-// Function to fetch the last message in a chat.
+// Function to fetch the last message in a chat
 suspend fun fetchLastMessage(chatId: String): Message? {
     return try {
+        // Fetch the last message from Firestore
         val lastMessageSnapshot = FirebaseFirestore.getInstance()
             .collection("chats")
             .document(chatId)
             .collection("messages")
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .limit(1)
+            .orderBy(
+                "timestamp",
+                Query.Direction.DESCENDING
+            ) // Order by timestamp in descending order
+            .limit(1) // Limit to the last message
             .get()
             .await()
 
+        // Get the last message document
         val lastMessageDocument = lastMessageSnapshot.documents.firstOrNull()
         lastMessageDocument?.let {
+            // Get the sender ID
+            val senderId = it["senderId"] as? String ?: ""
+            // Create a Message object with the fetched details
             Message(
-                it["senderId"] as? String ?: "",
-                it["content"] as? String ?: "",
-                it["timestamp"] as? com.google.firebase.Timestamp ?: com.google.firebase.Timestamp.now()
+                sender = User(
+                    userId = senderId,
+                    userName = fetchUserName(senderId)
+                ),
+                content = it["content"] as? String ?: "",
+                timestamp = it["timestamp"] as? com.google.firebase.Timestamp
+                    ?: com.google.firebase.Timestamp.now()
             )
         }
     } catch (e: Exception) {
+        // Log any errors
         Log.e("ChatListActivity", "Error fetching last message: ${e.message}")
         null
     }
 }
 
-// Function to get the name of a chat based on its participants and the current user ID.
-fun getChatName(participants: List<String>, currentUserId: String): String {
-    return participants.firstOrNull { it != currentUserId } ?: "Unknown Chat"
+// Function to fetch user details by user ID
+suspend fun fetchUser(userId: String): User? {
+    return try {
+        // Fetch user document from Firestore
+        val userDocument = FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(userId)
+            .get()
+            .await()
+
+        // Create a User object with the fetched details
+        User(
+            userId = userId,
+            // Get the username
+            userName = userDocument["username"] as? String ?: ""
+        )
+    } catch (e: Exception) {
+        // Log any errors
+        Log.e("ChatListActivity", "Error fetching user: ${e.message}")
+        null
+    }
 }
 
-// Composable function that displays a single chat item.
+// Function to fetch username by user ID
+private suspend fun fetchUserName(userId: String): String {
+    return try {
+        // Fetch user document from Firestore
+        val userDocument = FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(userId)
+            .get()
+            .await()
+
+        // Get the username
+        userDocument["username"] as? String ?: ""
+    } catch (e: Exception) {
+        // Log any errors
+        Log.e("ChatListActivity", "Error fetching user name: ${e.message}")
+        ""
+    }
+}
+
+// Composable function that displays a single chat item
 @Composable
 fun ChatItem(chat: Chat, onChatClick: () -> Unit) {
+    // Get the current user's ID
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
+    // Column to display chat item details
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -183,12 +234,17 @@ fun ChatItem(chat: Chat, onChatClick: () -> Unit) {
             .background(CaraidPurpleTertiary)
             .padding(10.dp)
     ) {
-        Text("Chat with: ${chat.otherUserName}")
+        // Display the other user's name
+        Text("Chat with: ${chat.otherUser?.userName ?: "Unknown"}")
+
+        // Display the last message content
         Text(
-            text = if (chat.lastMessage?.senderId == currentUserId) {
+            text = if (chat.lastMessage?.sender?.userId == currentUserId) {
+                // If the sender is the current user, display "You"
                 "You: ${chat.lastMessage?.content}"
             } else {
-                "${chat.otherUserName}: ${chat.lastMessage?.content}"
+                // Otherwise, display the other user's name
+                "${chat.otherUser?.userName ?: "Unknown"}: ${chat.lastMessage?.content}"
             }
         )
     }

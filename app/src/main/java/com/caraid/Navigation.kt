@@ -27,9 +27,10 @@ fun AppNavigation() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("chat_list") { ChatListScreen(navController) }
-            composable("chat_screen/{chatId}") { backStackEntry ->
+            composable("chat_screen/{chatId}/{otherUserName}") { backStackEntry ->
                 val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
-                ChatScreen(chatId, navController)
+                val otherUserName = backStackEntry.arguments?.getString("otherUserName") ?: ""
+                ChatScreen(chatId, otherUserName)
             }
         }
     }
