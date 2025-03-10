@@ -1,4 +1,4 @@
-package com.caraid // Package declaration
+package com.caraid
 
 import android.os.Bundle
 import android.util.Log
