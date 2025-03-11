@@ -1,3 +1,7 @@
+/*
+Callum Smith - S2145086
+ */
+
 package com.caraid
 
 data class Chat(

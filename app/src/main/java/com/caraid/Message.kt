@@ -1,3 +1,7 @@
+/*
+Callum Smith - S2145086
+ */
+
 package com.caraid
 
 import com.google.firebase.Timestamp

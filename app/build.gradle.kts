@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -82,4 +84,7 @@ dependencies {
     //Firebase Cloud Messaging
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging.ktx)
+
+    //Google Cloud NL
+    implementation (libs.google.cloud.language)
 }

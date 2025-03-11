@@ -2,7 +2,6 @@
 agp = "8.9.0"
 coreSplashscreen = "1.0.1"
 firebaseBom = "33.10.0"
-firebaseBomVersion = "33.10.0"
 firebaseUiAuth = "8.0.2"
 googleCloudLanguage = "2.59.0"
 kotlin = "2.0.0"
@@ -31,7 +30,6 @@ firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx" }
 #noinspection SimilarGradleDependency
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 #noinspection SimilarGradleDependency
-firebase-bom-v3222 = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBomVersion" }
 firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging-ktx" }
 firebase-ui-auth = { module = "com.firebaseui:firebase-ui-auth", version.ref = "firebaseUiAuth" }
 google-cloud-language = { module = "com.google.cloud:google-cloud-language", version.ref = "googleCloudLanguage" }
