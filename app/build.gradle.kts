@@ -85,6 +85,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging.ktx)
 
-    //Google Cloud NL
-    implementation (libs.google.cloud.language)
+    //REST API
+    implementation(libs.okhttp)
+    implementation(libs.gson)
 }
