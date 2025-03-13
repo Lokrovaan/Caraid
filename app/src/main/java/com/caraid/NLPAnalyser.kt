@@ -44,9 +44,6 @@ class NLPAnalyser {
                         throw IOException("Unexpected response code: ${response.code}")
                     }
 
-                    // Log the successful response
-                    println("NLP API Response: ${responseBody ?: "No body"}")
-
                     // Log the entire response body for debugging
                     println("NLP API Response (Full): ${responseBody ?: "No body"}")
 
