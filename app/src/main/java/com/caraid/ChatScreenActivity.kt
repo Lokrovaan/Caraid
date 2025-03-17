@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -59,6 +60,9 @@ fun ChatScreen(chatId: String, otherUserName: String) {
     val messages = remember { mutableStateListOf<Message>() }
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
+    // Create and remember LazyListState
+    val listState = rememberLazyListState()
+
     // Fetch messages and listen for updates
     LaunchedEffect(chatId) {
         try {
@@ -73,8 +77,19 @@ fun ChatScreen(chatId: String, otherUserName: String) {
                     }
                     messages.clear()
                     snapshot?.toObjects(Message::class.java)?.let { messages.addAll(it) }
+                    // Scroll to the bottom after new messages are added
                 }
         } catch (_: Exception) {
+        }
+    }
+
+    // Scroll to the bottom whenever messages list changes
+    LaunchedEffect(messages) {
+        if (messages.isNotEmpty()) {
+            // Launch a coroutine to call scrollToItem
+            launch {
+                listState.scrollToItem(messages.lastIndex)
+            }
         }
     }
 
@@ -87,9 +102,11 @@ fun ChatScreen(chatId: String, otherUserName: String) {
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            contentPadding = PaddingValues(16.dp)
+            contentPadding = PaddingValues(16.dp),
+            state = listState, // Attach LazyListState
+            reverseLayout = true // Reverse the layout
         ) {
-            items(messages) { message ->
+            items(messages.reversed()) { message -> // Display items in reversed order
                 MessageItem(message, currentUserId, otherUserName)
             }
         }
