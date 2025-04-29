@@ -266,7 +266,8 @@ fun AccountCreationForm(auth: FirebaseAuth, navController: NavController) {
                                                 .addOnCompleteListener { loginTask ->
                                                     if (loginTask.isSuccessful) {
                                                         // Navigate to the chat list screen
-                                                        navController.navigate("chat_list")
+                                                        val intent = Intent(context, ChatListActivity::class.java)
+                                                        context.startActivity(intent)
                                                     } else {
                                                         // Handle login error
                                                         Log.e(
