@@ -17,7 +17,7 @@ class NLPAnalyser {
     companion object {
         private val client = OkHttpClient()
         private const val API_KEY =
-            "AIzaSyCL0Ff8BTvcjySzSf_XNPvRCEhJYV8S_tk" // Replace with your actual API key
+            "AIzaSyCL0Ff8BTvcjySzSf_XNPvRCEhJYV8S_tk"
         private const val BASE_URL = "https://language.googleapis.com/v1/documents"
 
         //This function takes a string as input and returns a user-friendly interpretation of sentiment analysis.

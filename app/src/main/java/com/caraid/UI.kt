@@ -16,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.navigation.NavController
 import com.caraid.ui.theme.CaraidPurpleTertiary
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,13 +31,7 @@ fun CustomTopAppBar(title: @Composable () -> Unit) {
 }
 
 @Composable
-fun BottomNavigationBar(navController: NavController) {
-    // This is empty for now, but you can add your bottom bar content here later
-}
-
-@Composable
 fun ChatListTopAppBar() {
-    // Replace with your actual image resource ID
     val image = painterResource(R.drawable.white_h)
 
     CustomTopAppBar {
@@ -53,9 +46,4 @@ fun ChatListTopAppBar() {
             )
         }
     }
-}
-
-@Composable
-fun ChatListBottomNavigationBar(navController: NavController) {
-    // This is empty for now, but you can add your bottom bar content here later
 }

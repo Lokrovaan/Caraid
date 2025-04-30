@@ -20,9 +20,6 @@ fun AppNavigation() {
         topBar = {
             ChatListTopAppBar()
         },
-        bottomBar = {
-            ChatListBottomNavigationBar(navController)
-        },
         containerColor = CaraidPurplePrimary
     ) { innerPadding ->
         NavHost(

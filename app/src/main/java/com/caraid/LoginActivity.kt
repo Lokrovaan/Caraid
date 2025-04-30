@@ -42,8 +42,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.caraid.ui.theme.CaraidPurplePrimary
 import com.caraid.ui.theme.CaraidPurpleTertiary
 import com.caraid.ui.theme.CaraidTheme
@@ -67,7 +65,6 @@ class LoginActivity : ComponentActivity() {
 
 @Composable
 fun LoginScreen(auth: FirebaseAuth) {
-    val navController = rememberNavController()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
@@ -89,7 +86,7 @@ fun LoginScreen(auth: FirebaseAuth) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.white_v), // Replace with your image resource
+                    painter = painterResource(id = R.drawable.white_v),
                     contentDescription = "Caraid logo",
                     modifier = Modifier
                         .size(250.dp)
@@ -175,7 +172,7 @@ fun LoginScreen(auth: FirebaseAuth) {
                                 textAlign = TextAlign.Center
                             )
                         },
-                        text = { AccountCreationForm(auth, navController) },
+                        text = { AccountCreationForm(auth) },
                         confirmButton = {
                             Column(
                                 modifier = Modifier.fillMaxWidth(),
@@ -184,7 +181,7 @@ fun LoginScreen(auth: FirebaseAuth) {
                                 Button(
                                     onClick = { showAccountCreationForm = false },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = CaraidPurpleTertiary // Set the button colour to green
+                                        containerColor = CaraidPurpleTertiary
                                     )
                                 ) {
                                     Text("Cancel")
@@ -199,7 +196,7 @@ fun LoginScreen(auth: FirebaseAuth) {
 }
 
 @Composable
-fun AccountCreationForm(auth: FirebaseAuth, navController: NavController) {
+fun AccountCreationForm(auth: FirebaseAuth) {
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -292,7 +289,7 @@ fun AccountCreationForm(auth: FirebaseAuth, navController: NavController) {
                                             ).show()
                                         }
                                 } else {
-                                    // Handle error
+                                    // Handle token fetch error
                                     Log.e("MyTag", "FCM token fetch failed", tokenTask.exception)
                                     Toast.makeText(
                                         context,

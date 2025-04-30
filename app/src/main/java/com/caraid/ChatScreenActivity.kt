@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -128,6 +129,9 @@ fun ChatScreen(chatId: String, otherUserName: String) {
                         newMessage = ""
                     }
                 },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = CaraidPurpleTertiary
+                ),
                 modifier = Modifier.padding(start = 8.dp)
             ) {
                 Text("Send")
@@ -145,7 +149,7 @@ fun MessageItem(
     scope: CoroutineScope
 ) {
     var showAnalysisDialog by remember { mutableStateOf(false) }
-    var analysisResult by remember { mutableStateOf("") } // Changed to String
+    var analysisResult by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier.padding(8.dp)
